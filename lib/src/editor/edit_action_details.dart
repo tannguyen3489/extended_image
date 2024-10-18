@@ -18,6 +18,8 @@ class EditActionDetails {
   EdgeInsets? cropRectPadding;
   Rect? cropRect;
 
+  List<Offset> perspectivePoints = <Offset>[];
+
   /// aspect ratio of image
   double? originalAspectRatio;
 
@@ -197,6 +199,76 @@ class EditActionDetails {
     final double x0 = (x - rx0) * cos(angle) - (y - ry0) * sin(angle) + rx0;
     final double y0 = (x - rx0) * sin(angle) + (y - ry0) * cos(angle) + ry0;
     return Offset(x0, y0);
+  }
+
+  Matrix4 getPerspectiveTransform() {
+    final Offset origin =
+        _layoutRect?.centerLeft ?? _screenDestinationRect!.centerLeft;
+    final Matrix4 matrix = Matrix4.identity();
+
+    // matrix.perspectiveTransform(arg)
+    // ..rotateX(0.2)
+    // ..rotateY(0.1);
+
+    matrix.translate(
+      origin.dx,
+      origin.dy,
+    );
+
+    // matrix.setEntry(3, 2, 0.001);
+
+    //matrix.setEntry(3, 2, 0.001);
+
+    //matrix.scale(1.2, 1.2, 1.5);
+
+    // x [3,0]
+    // centerLeft -0.001 right
+    // centerRight 0.001 left
+
+    // y [3,1]
+    // topCenter -0.001 bottom
+    // bottomCenter 0.001 top
+    //result.setEntry(3, 2, 0.001);
+
+    matrix.multiply(
+      Matrix4(
+        //
+        1, 0, 0, 0, //
+        0, 1, 0, 0, //
+        0, 0, 1, 0, //
+        0, 0, 0, 1, //
+      ),
+    );
+    // (col * 4) + row
+    matrix.setEntry(3, 2, 0.0001);
+    // result.rotateX(-pi / 6);
+    // result.rotateY(pi / 6);
+    matrix.translate(
+      -origin.dx,
+      -origin.dy,
+    );
+
+    // var result1 = makePerspectiveMatrix(
+    //   fovYRadians,
+    //   aspectRatio,
+    //   zNear,
+    //   zFar,
+    // );
+    return matrix;
+  }
+
+  Matrix4 createPerspectiveMatrix(
+    double fov,
+    double aspectRatio,
+    double near,
+    double far,
+  ) {
+    return Matrix4(
+      1 / (aspectRatio * tan(fov / 2)), 0, 0, 0, //
+      0, 1 / tan(fov / 2), 0, 0, //
+      0, 0, (far + near) / (near - far), (2 * far * near) / (near - far), //
+      0, 0, -1, 0, //
+    );
   }
 
   Matrix4 getTransform({Offset? center}) {

@@ -149,6 +149,7 @@ void paintExtendedImage(
     outputSize = outputSize - sliceBorder as Size;
     inputSize = inputSize - sliceBorder as Size;
   }
+
   fit ??= centerSlice == null ? BoxFit.scaleDown : BoxFit.fill;
   assert(centerSlice == null || (fit != BoxFit.none && fit != BoxFit.cover));
   final FittedSizes fittedSizes =
@@ -225,7 +226,7 @@ void paintExtendedImage(
     needClip = !rect.containsRect(editActionDetails.getImagePath().getBounds());
 
     hasEditAction = editActionDetails.hasEditAction;
-
+    hasEditAction = true;
     if (needClip || hasEditAction) {
       canvas.save();
       if (needClip) {
@@ -236,6 +237,12 @@ void paintExtendedImage(
     if (hasEditAction) {
       canvas.transform(editActionDetails.getTransform().storage);
     }
+  }
+
+  if (editActionDetails != null &&
+      editActionDetails.perspectivePoints.isNotEmpty) {
+    canvas.save();
+    canvas.transform(editActionDetails.getPerspectiveTransform().storage);
   }
 
   if (beforePaintImage != null) {
@@ -285,6 +292,27 @@ void paintExtendedImage(
 
   if (needSave) {
     canvas.restore();
+  }
+
+  if (editActionDetails != null &&
+      editActionDetails.perspectivePoints.isNotEmpty) {
+    canvas.restore();
+    final List<Offset> perspectivePoints = editActionDetails.perspectivePoints
+        .map((Offset x) => x + editActionDetails.layoutTopLeft!)
+        .toList();
+    final Path path = Path()
+      ..moveTo(perspectivePoints[0].dx, perspectivePoints[0].dy)
+      ..lineTo(perspectivePoints[1].dx, perspectivePoints[1].dy)
+      ..lineTo(perspectivePoints[2].dx, perspectivePoints[2].dy)
+      ..lineTo(perspectivePoints[3].dx, perspectivePoints[3].dy)
+      ..close();
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = Colors.red
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
   }
 
   if (needClip || hasEditAction) {

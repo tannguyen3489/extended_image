@@ -14,6 +14,7 @@ import 'crop_layer.dart';
 import 'edit_action_details.dart';
 import 'editor_config.dart';
 import 'editor_utils.dart';
+import 'perspective_layer.dart';
 
 part 'image_editor_controller.dart';
 
@@ -205,6 +206,13 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
                     });
                   }
                   _layoutRect = layoutRect;
+
+                  return PerspectiveLayer(
+                    editActionDetails: _editActionDetails!,
+                    editorConfig: _editorConfig!,
+                    layoutRect: layoutRect,
+                  );
+
                   return ExtendedImageCropLayer(
                     editActionDetails: _editActionDetails!,
                     editorConfig: _editorConfig!,
