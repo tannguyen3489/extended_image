@@ -10,6 +10,9 @@ import 'package:flutter/foundation.dart';
 import 'package:http_client_helper/http_client_helper.dart';
 import 'package:image/image.dart';
 import 'package:image_editor/image_editor.dart';
+import 'package:image/image.dart' as img;
+import 'dart:math';
+import '../../pages/complex/image_editor_demo.dart';
 
 // final Future<LoadBalancer> loadBalancer =
 //     LoadBalancer.create(1, IsolateRunner.spawn);
@@ -32,6 +35,8 @@ Future<EditImageInfo> cropImageDataWithDartLibrary(
   ///crop rect base on raw image
   Rect cropRect = imageEditorController.getCropRect()!;
   final ExtendedImageEditorState state = imageEditorController.state!;
+  var editorCropLayerPainter = state.editorCropLayerPainter;
+
 
   print('getCropRect : $cropRect');
 
@@ -69,7 +74,13 @@ Future<EditImageInfo> cropImageDataWithDartLibrary(
       cropRect.right * widthRatio,
       cropRect.bottom * heightRatio,
     );
+
+
   }
+
+
+  // continue crop by circle
+
 
   final EditActionDetails editAction = state.editAction!;
 
@@ -98,13 +109,41 @@ Future<EditImageInfo> cropImageDataWithDartLibrary(
       }
 
       if (editAction.needCrop) {
-        image = copyCrop(
-          image,
-          x: cropRect.left.toInt(),
-          y: cropRect.top.toInt(),
-          width: cropRect.width.toInt(),
-          height: cropRect.height.toInt(),
-        );
+        // image = copyCrop(
+        //   image,
+        //   x: cropRect.left.toInt(),
+        //   y: cropRect.top.toInt(),
+        //   width: cropRect.width.toInt(),
+        //   height: cropRect.height.toInt(),
+        // );
+
+        // clip to circle
+        // image = copyCropCircle(image);
+        // image = cropCircle(image, cropRect);
+
+        if (editorCropLayerPainter is CircleEditorCropLayerPainter) {
+          int size = min(cropRect.width.toInt(), cropRect.height.toInt());
+          // image = copyCrop(
+          //   image,
+          //   x: cropRect.left.toInt(),
+          //   y: cropRect.top.toInt(),
+          //   width: cropRect.width.toInt(),
+          //   height: cropRect.height.toInt(),
+          // );
+
+          image = copyCropCircle(image, radius: size ~/ 2, centerX: cropRect.left.toInt() + cropRect.width.toInt() ~/ 2, centerY: cropRect.top.toInt() + cropRect.height.toInt() ~/ 2);
+        } else if (editorCropLayerPainter is TriangleCropLayerPainter) {
+          image = cropByTriangle(image);
+        } else {
+          image = copyCrop(
+            image,
+            x: cropRect.left.toInt(),
+            y: cropRect.top.toInt(),
+            width: cropRect.width.toInt(),
+            height: cropRect.height.toInt(),
+          );
+        }
+
       }
 
       final DateTime time3 = DateTime.now();
@@ -135,7 +174,7 @@ Future<EditImageInfo> cropImageDataWithDartLibrary(
   } else {
     //fileData = await lb.run<List<int>, Image>(encodeJpg, src);
     fileData = (onlyOneFrame
-        ? await compute(encodeJpg, Image.from(src.frames.first))
+        ? await compute(encodePng, Image.from(src.frames.first))
         : await compute(encodeGif, src));
   }
 
@@ -254,4 +293,118 @@ Future<Uint8List> _loadNetwork(ExtendedNetworkImageProvider key) async {
   } catch (e) {
     return Future<Uint8List>.error(StateError('failed load ${key.url}. \n $e'));
   }
+}
+
+
+img.Image cropCircle(img.Image srcImage, Rect cropRect) {
+  // Step 1: Determine square size for cropping
+  int size = srcImage.width < srcImage.height ? srcImage.width : srcImage.height;
+  int xOffset = (srcImage.width - size) ~/ 2;
+  int yOffset = (srcImage.height - size) ~/ 2;
+
+
+  // Step 2: Crop the square area from the center of the image
+  img.Image squareImage = img.copyCrop(
+    srcImage,
+    x: xOffset,
+    y: yOffset,
+    width: size,
+    height: size,
+  );
+  
+  
+
+  // Step 3: Create a circular mask with transparency
+  img.Image circularImage = img.Image(width: size, height: size);
+  int radius = size ~/ 2;
+
+  // Fill the mask image with transparency
+  circularImage = img.fill(color: img.ColorInt16.rgba(0, 0, 0, 0), circularImage, );
+
+  // Draw the circle in the center of the square
+  img.drawCircle(
+    circularImage,
+    x: radius,  // x center
+    y: radius,  // y center
+    radius: radius,  // radius
+    color: circularImage.getColor(255, 255, 255, 255),  // White circle
+    antialias: true,
+  );
+
+
+  // Step 4: Apply the circular mask to the square image
+  for (int y = 0; y < size; y++) {
+    for (int x = 0; x < size; x++) {
+      // If the pixel in the mask is transparent, set corresponding pixel in the squareImage to transparent
+      if (circularImage.getPixel(x, y) == circularImage.getColor(0, 0, 0, 0)) {
+        squareImage.setPixel(x, y, squareImage.getColor(255, 255, 255, 255));
+      }
+    }
+  }
+
+  return squareImage;
+
+}
+
+
+Image cropByTriangle(Image src, {int? sideLength, int? centerX, int? centerY, bool antialias = true}) {
+  // Set center and side length (triangle height)
+  centerX ??= src.width ~/ 2;
+  centerY ??= src.height ~/ 2;
+  sideLength ??= min(src.width, src.height) ~/ 2;
+
+  // Triangle vertices based on center and side length
+  final top = Point(centerX, centerY - sideLength ~/ 2);
+  final left = Point(centerX - sideLength ~/ 2, centerY + sideLength ~/ 2);
+  final right = Point(centerX + sideLength ~/ 2, centerY + sideLength ~/ 2);
+
+  // Crop area bounding box
+  final tlx = min(left.x, top.x);
+  final tly = min(left.y, top.y);
+  final wh = sideLength;
+
+  // Convert palette if needed
+  if (src.hasPalette) {
+    src = src.convert(numChannels: 4);
+  }
+
+  // Initialize the first frame for multi-frame support
+  Image? firstFrame;
+  final numFrames = src.numFrames;
+  for (var i = 0; i < numFrames; ++i) {
+    final frame = src.frames[i];
+    final dst = firstFrame?.addFrame() ?? Image.fromResized(frame, width: wh, height: wh, noAnimation: true);
+    firstFrame ??= dst;
+
+    final bg = frame.backgroundColor ?? src.backgroundColor;
+    if (bg != null) {
+      dst.clear(bg);
+    }
+
+    for (var yi = 0; yi < wh; ++yi) {
+      for (var xi = 0; xi < wh; ++xi) {
+        // Map dst pixel to src coordinates
+        final sx = tlx + xi;
+        final sy = tly + yi;
+
+        // Check if pixel is within the triangle using barycentric coordinates
+        if (isPointInTriangle(Point(sx, sy), top, left, right)) {
+          dst.setPixel(xi, yi, frame.getPixel(sx.toInt(), sy.toInt()));
+        } else {
+          dst.setPixel(xi, yi, dst.getColor(0, 0, 0, 0));  // Transparent
+        }
+      }
+    }
+  }
+
+  return firstFrame!;
+}
+
+// Function to check if a point is within a triangle using barycentric coordinates
+bool isPointInTriangle(Point p, Point a, Point b, Point c) {
+  final denominator = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+  final w1 = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) / denominator;
+  final w2 = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) / denominator;
+  final w3 = 1 - w1 - w2;
+  return w1 >= 0 && w2 >= 0 && w3 >= 0;
 }

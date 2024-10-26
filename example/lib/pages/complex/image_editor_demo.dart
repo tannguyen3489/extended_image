@@ -203,6 +203,30 @@ class _ImageEditorDemoState extends State<ImageEditorDemo> {
                             ),
                             value: const CircleEditorCropLayerPainter(),
                           ),
+                          const PopupMenuDivider(),
+                          PopupMenuItem<EditorCropLayerPainter>(
+                            child: Row(
+                              children: <Widget>[
+                                Container(
+                                  margin:
+                                  const EdgeInsets.symmetric(horizontal: 3),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.blue,
+                                    ),
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  width: 20,
+                                  height: 20,
+                                ),
+                                const SizedBox(
+                                  width: 5,
+                                ),
+                                const Text('Triangle'),
+                              ],
+                            ),
+                            value: const TriangleCropLayerPainter(),
+                          ),
                         ];
                       },
                       onSelected: (EditorCropLayerPainter value) {
@@ -211,6 +235,10 @@ class _ImageEditorDemoState extends State<ImageEditorDemo> {
                             if (value is CircleEditorCropLayerPainter) {
                               _aspectRatio.value = _aspectRatios[2];
                             }
+
+                            // if (value is TriangleCropLayerPainter) {
+                            //   _aspectRatio.value = _aspectRatios[2];
+                            // }
                             _cropLayerPainter = value;
                           });
                         }
@@ -738,6 +766,69 @@ class CircleEditorCropLayerPainter extends EditorCropLayerPainter {
     if (painter.pointerDown) {
       canvas.save();
       canvas.clipPath(Path()..addOval(cropRect));
+      super.paintLines(canvas, size, painter);
+      canvas.restore();
+    }
+  }
+}
+
+
+class TriangleCropLayerPainter extends EditorCropLayerPainter {
+  const TriangleCropLayerPainter();
+
+  @override
+  void paintCorners(
+      Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+    // Do nothing to omit corner markers
+  }
+
+  @override
+  void paintMask(
+      Canvas canvas, Rect rect, ExtendedImageCropLayerPainter painter) {
+    final Rect cropRect = painter.cropRect;
+    final Color maskColor = painter.maskColor;
+
+    canvas.saveLayer(rect, Paint());
+
+    // Draw a filled rectangle as the mask
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..style = PaintingStyle.fill
+        ..color = maskColor,
+    );
+
+    // Define the triangle path
+    final Path trianglePath = Path()
+      ..moveTo(cropRect.center.dx, cropRect.top) // top-center
+      ..lineTo(cropRect.left, cropRect.bottom)   // bottom-left
+      ..lineTo(cropRect.right, cropRect.bottom)  // bottom-right
+      ..close();
+
+    // Clear the triangular area from the mask
+    canvas.drawPath(
+      trianglePath,
+      Paint()..blendMode = BlendMode.clear,
+    );
+
+    canvas.restore();
+  }
+
+  @override
+  void paintLines(
+      Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+    final Rect cropRect = painter.cropRect;
+
+    if (painter.pointerDown) {
+      canvas.save();
+      // Clip the lines to be inside the triangle only
+      final Path trianglePath = Path()
+        ..moveTo(cropRect.center.dx, cropRect.top) // top-center
+        ..lineTo(cropRect.left, cropRect.bottom)   // bottom-left
+        ..lineTo(cropRect.right, cropRect.bottom)  // bottom-right
+        ..close();
+
+      canvas.clipPath(trianglePath);
       super.paintLines(canvas, size, painter);
       canvas.restore();
     }

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math_64.dart';
+import '../../extended_image.dart';
 import '../extended_image.dart';
 import 'crop_layer.dart';
 import 'edit_action_details.dart';
@@ -469,6 +470,8 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
   }
 
   EditActionDetails? get editAction => _editActionDetails;
+
+  EditorCropLayerPainter get editorCropLayerPainter => _editorConfig?.cropLayerPainter ?? const EditorCropLayerPainter();
 
   final List<EditActionDetails> _history = <EditActionDetails>[];
 
