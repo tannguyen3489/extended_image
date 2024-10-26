@@ -133,7 +133,16 @@ Future<EditImageInfo> cropImageDataWithDartLibrary(
 
           image = copyCropCircle(image, radius: size ~/ 2, centerX: cropRect.left.toInt() + cropRect.width.toInt() ~/ 2, centerY: cropRect.top.toInt() + cropRect.height.toInt() ~/ 2);
         } else if (editorCropLayerPainter is TriangleCropLayerPainter) {
-          image = cropByTriangle(image);
+          int size = min(cropRect.width.toInt(), cropRect.height.toInt());
+          // image = copyCrop(
+          //   image,
+          //   x: cropRect.left.toInt(),
+          //   y: cropRect.top.toInt(),
+          //   width: size,
+          //   height: size,
+          // );
+
+          image = cropByTriangle(image, sideLength: size, centerX: cropRect.left.toInt() + size ~/ 2, centerY: cropRect.top.toInt() + size ~/ 2);
         } else {
           image = copyCrop(
             image,

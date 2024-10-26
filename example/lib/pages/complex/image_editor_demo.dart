@@ -737,11 +737,11 @@ class CustomEditorCropLayerPainter extends EditorCropLayerPainter {
 class CircleEditorCropLayerPainter extends EditorCropLayerPainter {
   const CircleEditorCropLayerPainter();
 
-  @override
-  void paintCorners(
-      Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
-    // do nothing
-  }
+  // @override
+  // void paintCorners(
+  //     Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+  //   // do nothing
+  // }
 
   @override
   void paintMask(
@@ -776,11 +776,11 @@ class CircleEditorCropLayerPainter extends EditorCropLayerPainter {
 class TriangleCropLayerPainter extends EditorCropLayerPainter {
   const TriangleCropLayerPainter();
 
-  @override
-  void paintCorners(
-      Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
-    // Do nothing to omit corner markers
-  }
+  // @override
+  // void paintCorners(
+  //     Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+  //   // Do nothing to omit corner markers
+  // }
 
   @override
   void paintMask(
