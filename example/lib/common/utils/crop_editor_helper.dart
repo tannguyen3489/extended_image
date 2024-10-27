@@ -200,6 +200,9 @@ Future<EditImageInfo> cropImageDataWithNativeLibrary(
     ImageEditorController imageEditorController) async {
   print('native library start cropping');
 
+  final ExtendedImageEditorState state = imageEditorController.state!;
+  var editorCropLayerPainter = state.editorCropLayerPainter;
+
   final EditActionDetails action = imageEditorController.editActionDetails!;
 
   final Uint8List img = imageEditorController.state!.rawImageData;
@@ -231,6 +234,38 @@ Future<EditImageInfo> cropImageDataWithNativeLibrary(
         cropRect.right * widthRatio,
         cropRect.bottom * heightRatio,
       );
+
+      // if (editorCropLayerPainter is CircleEditorCropLayerPainter) {
+      //   int size = min(cropRect.width.toInt(), cropRect.height.toInt());
+      //   // image = copyCrop(
+      //   //   image,
+      //   //   x: cropRect.left.toInt(),
+      //   //   y: cropRect.top.toInt(),
+      //   //   width: cropRect.width.toInt(),
+      //   //   height: cropRect.height.toInt(),
+      //   // );
+      //
+      //   image = copyCropCircle(image, radius: size ~/ 2, centerX: cropRect.left.toInt() + cropRect.width.toInt() ~/ 2, centerY: cropRect.top.toInt() + cropRect.height.toInt() ~/ 2);
+      // } else if (editorCropLayerPainter is TriangleCropLayerPainter) {
+      //   int size = min(cropRect.width.toInt(), cropRect.height.toInt());
+      //   // image = copyCrop(
+      //   //   image,
+      //   //   x: cropRect.left.toInt(),
+      //   //   y: cropRect.top.toInt(),
+      //   //   width: size,
+      //   //   height: size,
+      //   // );
+      //
+      //   image = cropByTriangle(image, sideLength: size, centerX: cropRect.left.toInt() + size ~/ 2, centerY: cropRect.top.toInt() + size ~/ 2);
+      // } else {
+      //   image = copyCrop(
+      //     image,
+      //     x: cropRect.left.toInt(),
+      //     y: cropRect.top.toInt(),
+      //     width: cropRect.width.toInt(),
+      //     height: cropRect.height.toInt(),
+      //   );
+      // }
     }
     option.addOption(ClipOption.fromRect(cropRect));
   }

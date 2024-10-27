@@ -8,6 +8,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:vector_math/vector_math_64.dart';
 import '../../extended_image.dart';
 import '../extended_image.dart';
@@ -178,6 +179,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
       },
     );
 
+
     Widget result = GestureDetector(
         onScaleStart: _handleScaleStart,
         onScaleUpdate: _handleScaleUpdate,
@@ -237,7 +239,48 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
       // },
       behavior: _editorConfig!.hitTestBehavior,
     );
-    return result;
+    return Stack(
+      children: [
+        result,
+        // bottom menu full width with center icon buttons
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            // color: ui.Colors.black.withOpacity(0.5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.rectangle_outlined),
+                  onPressed: () {
+                    setState(() {
+                      _editorConfig = _editorConfig!.copyWith(
+                        cropAspectRatio: null,
+                      );
+                    });
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.circle_outlined),
+                  onPressed: () {
+                    _editorConfig!.controller!.updateCropAspectRatio(1);
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.change_history),
+                  onPressed: () {
+                    _editorConfig!.controller!.updateCropAspectRatio(1);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+
+      ],
+    );
   }
 
   ui.Rect _getNewCropRect(

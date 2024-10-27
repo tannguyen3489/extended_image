@@ -181,6 +181,12 @@ class _ImageEditorDemoState extends State<ImageEditorDemo> {
                           ),
                           const PopupMenuDivider(),
                           PopupMenuItem<EditorCropLayerPainter>(
+                            onTap: () {
+                              var squareAspect = AspectRatioItem(text: '1*1', value: CropAspectRatios.ratio1_1);
+                              _editorController.updateCropAspectRatio(squareAspect.value);
+                              _aspectRatio.value = squareAspect;
+
+                            },
                             child: Row(
                               children: <Widget>[
                                 Container(
@@ -205,6 +211,12 @@ class _ImageEditorDemoState extends State<ImageEditorDemo> {
                           ),
                           const PopupMenuDivider(),
                           PopupMenuItem<EditorCropLayerPainter>(
+                            onTap: () {
+                              var squareAspect = AspectRatioItem(text: '1*1', value: CropAspectRatios.ratio1_1);
+                              _editorController.updateCropAspectRatio(squareAspect.value);
+                              _aspectRatio.value = squareAspect;
+
+                            },
                             child: Row(
                               children: <Widget>[
                                 Container(
