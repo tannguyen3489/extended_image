@@ -239,43 +239,58 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
       // },
       behavior: _editorConfig!.hitTestBehavior,
     );
-    return Stack(
+    return Column(
       children: [
-        result,
+        Expanded(child: result),
         // bottom menu full width with center icon buttons
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            // color: ui.Colors.black.withOpacity(0.5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.rectangle_outlined),
-                  onPressed: () {
-                    setState(() {
-                      _editorConfig = _editorConfig!.copyWith(
-                        cropAspectRatio: null,
-                      );
-                    });
-                  },
-                ),
-                IconButton(
-                  icon: Icon(Icons.circle_outlined),
-                  onPressed: () {
-                    _editorConfig!.controller!.updateCropAspectRatio(1);
-                  },
-                ),
-                IconButton(
-                  icon: Icon(Icons.change_history),
-                  onPressed: () {
-                    _editorConfig!.controller!.updateCropAspectRatio(1);
-                  },
-                ),
-              ],
-            ),
+        Container(
+          // color: ui.Colors.black.withOpacity(0.5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                icon: Icon(Icons.rectangle_outlined),
+                onPressed: () {
+                  setState(() {
+                    _editorConfig!.controller?.updateCropAspectRatio(null);
+                    // _editorConfig!.cropLayerPainter = const EditorCropLayerPainter();
+
+                    _editorConfig = _editorConfig!.copyWith(
+                      cropAspectRatio: 1,
+                      cropLayerPainter: const EditorCropLayerPainter(),
+                    );
+                  });
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.circle_outlined),
+                onPressed: () {
+                  setState(() {
+                    _editorConfig!.controller?.updateCropAspectRatio(1);
+                    // _editorConfig!.cropLayerPainter = const EditorCropLayerPainter();
+
+                    _editorConfig = _editorConfig!.copyWith(
+                      cropAspectRatio: 1,
+                      cropLayerPainter: const CircleEditorCropLayerPainter(),
+                    );
+                  });
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.change_history),
+                onPressed: () {
+                  setState(() {
+                    _editorConfig!.controller?.updateCropAspectRatio(1);
+                    // _editorConfig!.cropLayerPainter = const EditorCropLayerPainter();
+
+                    _editorConfig = _editorConfig!.copyWith(
+                      cropAspectRatio: 1,
+                      cropLayerPainter: const TriangleCropLayerPainter(),
+                    );
+                  });
+                },
+              ),
+            ],
           ),
         ),
 
@@ -512,6 +527,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
     return extendedImageProvider.rawImageData;
   }
 
+  EditActionDetails? get editCon => _editActionDetails;
   EditActionDetails? get editAction => _editActionDetails;
 
   EditorCropLayerPainter get editorCropLayerPainter => _editorConfig?.cropLayerPainter ?? const EditorCropLayerPainter();
@@ -803,5 +819,108 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
   @override
   void saveCurrentState() {
     _saveCurrentState();
+  }
+}
+
+
+
+class CircleEditorCropLayerPainter extends EditorCropLayerPainter {
+  const CircleEditorCropLayerPainter();
+
+  // @override
+  // void paintCorners(
+  //     Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+  //   // do nothing
+  // }
+
+  @override
+  void paintMask(
+      Canvas canvas, Rect rect, ExtendedImageCropLayerPainter painter) {
+    final Rect cropRect = painter.cropRect;
+    final Color maskColor = painter.maskColor;
+    canvas.saveLayer(rect, Paint());
+    canvas.drawRect(
+        rect,
+        Paint()
+          ..style = PaintingStyle.fill
+          ..color = maskColor);
+    canvas.drawCircle(cropRect.center, cropRect.width / 2.0,
+        Paint()..blendMode = BlendMode.clear);
+    canvas.restore();
+  }
+
+  @override
+  void paintLines(
+      Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+    final Rect cropRect = painter.cropRect;
+    if (painter.pointerDown) {
+      canvas.save();
+      canvas.clipPath(Path()..addOval(cropRect));
+      super.paintLines(canvas, size, painter);
+      canvas.restore();
+    }
+  }
+}
+
+
+class TriangleCropLayerPainter extends EditorCropLayerPainter {
+  const TriangleCropLayerPainter();
+
+  // @override
+  // void paintCorners(
+  //     Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+  //   // Do nothing to omit corner markers
+  // }
+
+  @override
+  void paintMask(
+      Canvas canvas, Rect rect, ExtendedImageCropLayerPainter painter) {
+    final Rect cropRect = painter.cropRect;
+    final Color maskColor = painter.maskColor;
+
+    canvas.saveLayer(rect, Paint());
+
+    // Draw a filled rectangle as the mask
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..style = PaintingStyle.fill
+        ..color = maskColor,
+    );
+
+    // Define the triangle path
+    final Path trianglePath = Path()
+      ..moveTo(cropRect.center.dx, cropRect.top) // top-center
+      ..lineTo(cropRect.left, cropRect.bottom)   // bottom-left
+      ..lineTo(cropRect.right, cropRect.bottom)  // bottom-right
+      ..close();
+
+    // Clear the triangular area from the mask
+    canvas.drawPath(
+      trianglePath,
+      Paint()..blendMode = BlendMode.clear,
+    );
+
+    canvas.restore();
+  }
+
+  @override
+  void paintLines(
+      Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+    final Rect cropRect = painter.cropRect;
+
+    if (painter.pointerDown) {
+      canvas.save();
+      // Clip the lines to be inside the triangle only
+      final Path trianglePath = Path()
+        ..moveTo(cropRect.center.dx, cropRect.top) // top-center
+        ..lineTo(cropRect.left, cropRect.bottom)   // bottom-left
+        ..lineTo(cropRect.right, cropRect.bottom)  // bottom-right
+        ..close();
+
+      canvas.clipPath(trianglePath);
+      super.paintLines(canvas, size, painter);
+      canvas.restore();
+    }
   }
 }

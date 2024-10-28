@@ -105,7 +105,7 @@ class EditorConfig {
 
   /// A custom painter for drawing the crop rect and handles.
   /// This allows for customizing the appearance of the crop boundary and corner handles.
-  final EditorCropLayerPainter cropLayerPainter;
+  late EditorCropLayerPainter cropLayerPainter;
 
   /// Speed factor for zooming and panning interactions.
   /// Adjusts how quickly the user can move or zoom the image during editing.
@@ -119,4 +119,49 @@ class EditorConfig {
   /// A controller to manage image editing actions, providing functions like rotating, flipping, undoing, and redoing actions..
   /// This allows for external control of the editing process.
   final ImageEditorController? controller;
+
+  /// Creates a copy of this [EditorConfig] but with the given fields replaced with the new values.
+  EditorConfig copyWith({
+    double? maxScale,
+    EdgeInsets? cropRectPadding,
+    Size? cornerSize,
+    Color? cornerColor,
+    Color? lineColor,
+    double? lineHeight,
+    EditorMaskColorHandler? editorMaskColorHandler,
+    double? hitTestSize,
+    Duration? animationDuration,
+    Duration? tickerDuration,
+    double? cropAspectRatio,
+    double? initialCropAspectRatio,
+    InitCropRectType? initCropRectType,
+    EditorCropLayerPainter? cropLayerPainter,
+    double? speed,
+    HitTestBehavior? hitTestBehavior,
+    EditActionDetailsIsChanged? editActionDetailsIsChanged,
+    bool? reverseMousePointerScrollDirection,
+    ImageEditorController? controller,
+  }) {
+    return EditorConfig(
+      maxScale: maxScale ?? this.maxScale,
+      cropRectPadding: cropRectPadding ?? this.cropRectPadding,
+      cornerSize: cornerSize ?? this.cornerSize,
+      cornerColor: cornerColor ?? this.cornerColor,
+      lineColor: lineColor ?? this.lineColor,
+      lineHeight: lineHeight ?? this.lineHeight,
+      editorMaskColorHandler: editorMaskColorHandler ?? this.editorMaskColorHandler,
+      hitTestSize: hitTestSize ?? this.hitTestSize,
+      animationDuration: animationDuration ?? this.animationDuration,
+      tickerDuration: tickerDuration ?? this.tickerDuration,
+      cropAspectRatio: cropAspectRatio ?? this.cropAspectRatio,
+      initialCropAspectRatio: initialCropAspectRatio ?? this.initialCropAspectRatio,
+      initCropRectType: initCropRectType ?? this.initCropRectType,
+      cropLayerPainter: cropLayerPainter ?? this.cropLayerPainter,
+      speed: speed ?? this.speed,
+      hitTestBehavior: hitTestBehavior ?? this.hitTestBehavior,
+      editActionDetailsIsChanged: editActionDetailsIsChanged ?? this.editActionDetailsIsChanged,
+      reverseMousePointerScrollDirection: reverseMousePointerScrollDirection ?? this.reverseMousePointerScrollDirection,
+      controller: controller ?? this.controller,
+    );
+  }
 }
