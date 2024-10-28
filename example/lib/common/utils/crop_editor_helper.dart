@@ -6,6 +6,7 @@ import 'dart:ui';
 // import 'package:isolate/isolate_runner.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 // ignore: implementation_imports
 import 'package:http_client_helper/http_client_helper.dart';
 import 'package:image/image.dart';
@@ -92,9 +93,20 @@ Future<EditImageInfo> cropImageDataWithDartLibrary(
   if (kIsWeb) {
     src = decodeImage(data);
   } else {
-    src = await compute(decodeImage, data);
+    // convert data to webp image
+    var result = await FlutterImageCompress.compressWithList(
+      data,
+      autoCorrectionAngle: true,
+      quality: 100,
+      format: CompressFormat.webp,
+    );
+    src = await compute(decodeImage, result);
+
+
   }
   if (src != null) {
+    // src = copyCrop(src, x: 0, y: 0, width: src.width, height: src.height);
+    // src = decodeImage(encodePng(src))!;
     //handle every frame.
     src.frames = src.frames.map((Image image) {
       final DateTime time2 = DateTime.now();
@@ -141,6 +153,9 @@ Future<EditImageInfo> cropImageDataWithDartLibrary(
           //   width: size,
           //   height: size,
           // );
+
+          // convert current image to webp image
+
 
           image = cropByTriangle(image, sideLength: size, centerX: cropRect.left.toInt() + size ~/ 2, centerY: cropRect.top.toInt() + size ~/ 2);
         } else {

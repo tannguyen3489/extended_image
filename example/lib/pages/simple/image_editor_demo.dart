@@ -31,7 +31,7 @@ class _SimpleImageEditorState extends State<SimpleImageEditor> {
         title: const Text('ImageEditor'),
       ),
       body: ExtendedImage.asset(
-        'assets/image.jpg',
+        'assets/tantest.jpg',
         fit: BoxFit.contain,
         mode: ExtendedImageMode.editor,
         enableLoadState: true,

@@ -26,6 +26,7 @@ dependencies:
   url_launcher: any
   vm_service: any
   wechat_assets_picker: any
+  flutter_image_compress: ^2.3.0
 
 
 dependency_overrides:
