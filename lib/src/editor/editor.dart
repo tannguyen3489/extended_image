@@ -244,26 +244,26 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
         Expanded(child: result),
         // bottom menu full width with center icon buttons
         Container(
-          // color: ui.Colors.black.withOpacity(0.5),
+          color: ui.Color.fromARGB(255, 255, 255, 255),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               IconButton(
-                icon: Icon(Icons.rectangle_outlined),
+                icon: Icon(Icons.rectangle_outlined, color: ui.Color.fromARGB(255, 0 , 0 , 0),),
                 onPressed: () {
                   setState(() {
                     _editorConfig!.controller?.updateCropAspectRatio(null);
                     // _editorConfig!.cropLayerPainter = const EditorCropLayerPainter();
 
                     _editorConfig = _editorConfig!.copyWith(
-                      cropAspectRatio: 1,
+                      cropAspectRatio: null,
                       cropLayerPainter: const EditorCropLayerPainter(),
                     );
                   });
                 },
               ),
               IconButton(
-                icon: Icon(Icons.circle_outlined),
+                icon: Icon(Icons.circle_outlined, color: ui.Color.fromARGB(255, 0 , 0 , 0)),
                 onPressed: () {
                   setState(() {
                     _editorConfig!.controller?.updateCropAspectRatio(1);
@@ -277,7 +277,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
                 },
               ),
               IconButton(
-                icon: Icon(Icons.change_history),
+                icon: Icon(Icons.change_history, color: ui.Color.fromARGB(255, 0 , 0 , 0)),
                 onPressed: () {
                   setState(() {
                     _editorConfig!.controller?.updateCropAspectRatio(1);
