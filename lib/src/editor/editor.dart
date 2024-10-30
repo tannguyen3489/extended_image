@@ -1,21 +1,15 @@
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:extended_image/src/image/raw_image.dart';
-import 'package:extended_image/src/utils.dart';
-import 'package:extended_image_library/extended_image_library.dart';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:vector_math/vector_math_64.dart';
+
 import '../../extended_image.dart';
-import '../extended_image.dart';
 import 'crop_layer.dart';
-import 'edit_action_details.dart';
-import 'editor_config.dart';
-import 'editor_utils.dart';
 
 part 'image_editor_controller.dart';
 
@@ -25,26 +19,23 @@ part 'image_editor_controller.dart';
 
 class ExtendedImageEditor extends StatefulWidget {
   ExtendedImageEditor({required this.extendedImageState, Key? key})
-      : assert(extendedImageState.imageWidget.fit == BoxFit.contain,
-            'Make sure the image is all painted to crop,the fit of image must be BoxFit.contain'),
-        assert(extendedImageState.imageWidget.image is ExtendedImageProvider,
-            'Make sure the image provider is ExtendedImageProvider, we will get raw image data from it'),
+      : assert(extendedImageState.imageWidget.fit == BoxFit.contain, 'Make sure the image is all painted to crop,the fit of image must be BoxFit.contain'),
+        assert(extendedImageState.imageWidget.image is ExtendedImageProvider, 'Make sure the image provider is ExtendedImageProvider, we will get raw image data from it'),
         super(key: key);
   final ExtendedImageState extendedImageState;
   @override
   ExtendedImageEditorState createState() => ExtendedImageEditorState();
 }
 
-class ExtendedImageEditorState extends State<ExtendedImageEditor>
-    with SingleTickerProviderStateMixin, ImageEditorControllerMixin {
+class ExtendedImageEditorState extends State<ExtendedImageEditor> with SingleTickerProviderStateMixin, ImageEditorControllerMixin {
   EditActionDetails? _editActionDetails;
   EditorConfig? _editorConfig;
   late double _startingScale;
+
   // late double _startingRotation;
   late Offset _startingOffset;
   double _detailsScale = 1.0;
-  final GlobalKey<ExtendedImageCropLayerState> _layerKey =
-      GlobalKey<ExtendedImageCropLayerState>();
+  final GlobalKey<ExtendedImageCropLayerState> _layerKey = GlobalKey<ExtendedImageCropLayerState>();
 
   late AnimationController _animationController;
 
@@ -75,14 +66,12 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
 
   void _onAnimation() {
     if (_rotateCropRect && _rotateRadiansAnimation != null) {
-      _layerKey.currentState?.rotateCropRect(
-          _rotateRadiansAnimation!.value - _editActionDetails!.rotateRadians);
+      _layerKey.currentState?.rotateCropRect(_rotateRadiansAnimation!.value - _editActionDetails!.rotateRadians);
 
       _editActionDetails!.rotateRadians = _rotateRadiansAnimation!.value;
     } else {
       _updateRotate(
-        _rotationYRadiansAnimation?.value ??
-            _editActionDetails!.rotationYRadians,
+        _rotationYRadiansAnimation?.value ?? _editActionDetails!.rotationYRadians,
         _rotateRadiansAnimation?.value ?? _editActionDetails!.rotateRadians,
       );
     }
@@ -107,10 +96,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
   }
 
   void _initGestureConfig() {
-    _editorConfig = widget
-            .extendedImageState.imageWidget.initEditorConfigHandler
-            ?.call(widget.extendedImageState) ??
-        EditorConfig();
+    _editorConfig = widget.extendedImageState.imageWidget.initEditorConfigHandler?.call(widget.extendedImageState) ?? EditorConfig();
     _editorConfig?.controller?._state = this;
 
     _editActionDetails ??= EditActionDetails()
@@ -120,9 +106,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
       ..cropRectPadding = _editorConfig!.cropRectPadding;
 
     if (widget.extendedImageState.extendedImageInfo?.image != null) {
-      _editActionDetails!.originalAspectRatio =
-          widget.extendedImageState.extendedImageInfo!.image.width /
-              widget.extendedImageState.extendedImageInfo!.image.height;
+      _editActionDetails!.originalAspectRatio = widget.extendedImageState.extendedImageInfo!.image.width / widget.extendedImageState.extendedImageInfo!.image.height;
     }
 
     if (_editActionDetails!.cropRect == null) {
@@ -179,7 +163,6 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
       },
     );
 
-
     Widget result = GestureDetector(
         onScaleStart: _handleScaleStart,
         onScaleUpdate: _handleScaleUpdate,
@@ -190,8 +173,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
             children: <Widget>[
               Positioned.fill(child: image),
               Positioned.fill(
-                child: LayoutBuilder(builder:
-                    (BuildContext context, BoxConstraints constraints) {
+                child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
                   Rect layoutRect = Offset.zero &
                       Size(
                         constraints.maxWidth,
@@ -241,15 +223,17 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
     );
     return Column(
       children: [
-        Expanded(child: result),
-        // bottom menu full width with center icon buttons
+        Expanded(child: result), // bottom menu full width with center icon buttons
         Container(
           color: ui.Color.fromARGB(255, 255, 255, 255),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               IconButton(
-                icon: Icon(Icons.rectangle_outlined, color: ui.Color.fromARGB(255, 0 , 0 , 0),),
+                icon: Icon(
+                  Icons.rectangle_outlined,
+                  color: ui.Color.fromARGB(255, 0, 0, 0),
+                ),
                 onPressed: () {
                   setState(() {
                     _editorConfig!.controller?.updateCropAspectRatio(null);
@@ -263,7 +247,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
                 },
               ),
               IconButton(
-                icon: Icon(Icons.circle_outlined, color: ui.Color.fromARGB(255, 0 , 0 , 0)),
+                icon: Icon(Icons.circle_outlined, color: ui.Color.fromARGB(255, 0, 0, 0)),
                 onPressed: () {
                   setState(() {
                     _editorConfig!.controller?.updateCropAspectRatio(1);
@@ -277,15 +261,33 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
                 },
               ),
               IconButton(
-                icon: Icon(Icons.change_history, color: ui.Color.fromARGB(255, 0 , 0 , 0)),
+                icon: Icon(Icons.change_history, color: ui.Color.fromARGB(255, 0, 0, 0)),
                 onPressed: () {
                   setState(() {
-                    _editorConfig!.controller?.updateCropAspectRatio(1);
+                    _editorConfig!.controller?.updateCropAspectRatio(null);
                     // _editorConfig!.cropLayerPainter = const EditorCropLayerPainter();
 
                     _editorConfig = _editorConfig!.copyWith(
-                      cropAspectRatio: 1,
                       cropLayerPainter: const TriangleCropLayerPainter(),
+                    );
+                  });
+                },
+              ),
+              IconButton(
+                icon: SvgPicture.asset(
+                  'packages/extended_image/assets/oval.svg',
+                  color: ui.Color.fromARGB(255, 0, 0, 0),
+                  semanticsLabel: 'Oval shape',
+                  width: 24,
+                  height: 24,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _editorConfig!.controller?.updateCropAspectRatio(null);
+                    // _editorConfig!.cropLayerPainter = const EditorCropLayerPainter();
+
+                    _editorConfig = _editorConfig!.copyWith(
+                      cropLayerPainter: const OvalCropLayerPainter(),
                     );
                   });
                 },
@@ -293,7 +295,6 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
             ],
           ),
         ),
-
       ],
     );
   }
@@ -309,21 +310,15 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
     layoutRect = padding.deflateRect(layoutRect);
 
     if (_editActionDetails!.cropRect == null) {
-      final AlignmentGeometry alignment =
-          widget.extendedImageState.imageWidget.alignment;
+      final AlignmentGeometry alignment = widget.extendedImageState.imageWidget.alignment;
       //matchTextDirection: extendedImage.matchTextDirection,
       //don't support TextDirection for editor
-      final TextDirection? textDirection =
-          //extendedImage.matchTextDirection ||
+      final TextDirection? textDirection = //extendedImage.matchTextDirection ||
           alignment is! Alignment ? Directionality.of(context) : null;
       final Alignment resolvedAlignment = alignment.resolve(textDirection);
       final Rect destinationRect = getDestinationRect(
           rect: layoutRect,
-          inputSize: Size(
-              widget.extendedImageState.extendedImageInfo!.image.width
-                  .toDouble(),
-              widget.extendedImageState.extendedImageInfo!.image.height
-                  .toDouble()),
+          inputSize: Size(widget.extendedImageState.extendedImageInfo!.image.width.toDouble(), widget.extendedImageState.extendedImageInfo!.image.height.toDouble()),
           flipHorizontally: false,
           fit: widget.extendedImageState.imageWidget.fit,
           centerSlice: widget.extendedImageState.imageWidget.centerSlice,
@@ -332,17 +327,12 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
 
       Rect cropRect = _initCropRect(destinationRect);
       initCropRectType ??= _editorConfig!.initCropRectType;
-      if (initCropRectType == InitCropRectType.layoutRect &&
-          _editActionDetails!.cropAspectRatio != null &&
-          _editActionDetails!.cropAspectRatio! > 0) {
+      if (initCropRectType == InitCropRectType.layoutRect && _editActionDetails!.cropAspectRatio != null && _editActionDetails!.cropAspectRatio! > 0) {
         final Rect rect = _initCropRect(layoutRect);
         // layout rect is bigger than image rect
         // it should scale the image to conver crop rect
         if (autoScale) {
-          _editActionDetails!.totalScale = _editActionDetails!.preTotalScale =
-              destinationRect.width.greaterThan(destinationRect.height)
-                  ? rect.height / cropRect.height
-                  : rect.width / cropRect.width;
+          _editActionDetails!.totalScale = _editActionDetails!.preTotalScale = destinationRect.width.greaterThan(destinationRect.height) ? rect.height / cropRect.height : rect.width / cropRect.width;
         }
 
         cropRect = rect;
@@ -354,12 +344,10 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
 
   Rect _initCropRect(Rect rect) {
     if (_editActionDetails!.cropAspectRatio != null) {
-      return _calculateCropRectFromAspectRatio(
-          rect, _editActionDetails!.cropAspectRatio!);
+      return _calculateCropRectFromAspectRatio(rect, _editActionDetails!.cropAspectRatio!);
     }
     if (_editorConfig!.initialCropAspectRatio != null) {
-      return _calculateCropRectFromAspectRatio(
-          rect, _editorConfig!.initialCropAspectRatio!);
+      return _calculateCropRectFromAspectRatio(rect, _editorConfig!.initialCropAspectRatio!);
     }
     return rect;
   }
@@ -394,13 +382,11 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
 
   void _handleScaleUpdate(ScaleUpdateDetails details) {
     _layerKey.currentState!.pointerDown(true);
-    if (_layerKey.currentState!.isAnimating ||
-        _layerKey.currentState!.isMoving) {
+    if (_layerKey.currentState!.isAnimating || _layerKey.currentState!.isMoving) {
       return;
     }
     double totalScale = _startingScale * details.scale * _editorConfig!.speed;
-    final Offset delta =
-        details.focalPoint * _editorConfig!.speed - _startingOffset;
+    final Offset delta = details.focalPoint * _editorConfig!.speed - _startingOffset;
     final double scaleDelta = details.scale / _detailsScale;
     // final bool zoomOut = scaleDelta < 1;
     final bool zoomIn = scaleDelta > 1;
@@ -410,12 +396,10 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
     _startingOffset = details.focalPoint;
     _editActionDetails!.screenFocalPoint = details.focalPoint;
     // no more zoom
-    if (_editActionDetails!.totalScale.equalTo(_editorConfig!.maxScale) &&
-        zoomIn) {
+    if (_editActionDetails!.totalScale.equalTo(_editorConfig!.maxScale) && zoomIn) {
       // correct _startingScale
       // details.scale was not calcuated at the moment
-      _startingScale =
-          _editActionDetails!.totalScale / details.scale / _editorConfig!.speed;
+      _startingScale = _editActionDetails!.totalScale / details.scale / _editorConfig!.speed;
 
       return;
     }
@@ -423,8 +407,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
     totalScale = min(totalScale, _editorConfig!.maxScale);
     if (mounted) {
       setState(() {
-        if (
-            // (_editorConfig!.gestureRotate && details.rotation != 0) ||
+        if ( // (_editorConfig!.gestureRotate && details.rotation != 0) ||
             scaleDelta != 1.0) {
           // _editActionDetails!.updateRotateRadian(
           //   _startingRotation +
@@ -448,12 +431,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
       _handleScaleStart(ScaleStartDetails(focalPoint: event.position));
       final double dy = event.scrollDelta.dy;
       final double dx = event.scrollDelta.dx;
-      _handleScaleUpdate(ScaleUpdateDetails(
-          focalPoint: event.position,
-          scale: 1.0 +
-              _reverseIf((dy.abs() > dx.abs() ? dy : dx) *
-                  _editorConfig!.speed /
-                  1000.0)));
+      _handleScaleUpdate(ScaleUpdateDetails(focalPoint: event.position, scale: 1.0 + _reverseIf((dy.abs() > dx.abs() ? dy : dx) * _editorConfig!.speed / 1000.0)));
       _debounceSaveCurrentEditActionDetails();
     }
   }
@@ -468,8 +446,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
 
   @override
   Rect? getCropRect() {
-    if (widget.extendedImageState.extendedImageInfo?.image == null ||
-        _editActionDetails == null) {
+    if (widget.extendedImageState.extendedImageInfo?.image == null || _editActionDetails == null) {
       return null;
     }
 
@@ -498,8 +475,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
           image.height.toDouble(),
         );
 
-    final Path physicalimagePath =
-        _editActionDetails!.getImagePath(rect: physicalimageRect);
+    final Path physicalimagePath = _editActionDetails!.getImagePath(rect: physicalimageRect);
     physicalimageRect = physicalimagePath.getBounds();
 
     final double ratioX = physicalimageRect.width / imageScreenRect.width;
@@ -517,13 +493,11 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
   ui.Image? get image => widget.extendedImageState.extendedImageInfo?.image;
 
   Uint8List get rawImageData {
-    assert(
-        widget.extendedImageState.imageWidget.image is ExtendedImageProvider);
+    assert(widget.extendedImageState.imageWidget.image is ExtendedImageProvider);
 
-    final ExtendedImageProvider<dynamic> extendedImageProvider =
-        widget.extendedImageState.imageWidget.image
-            // ignore: always_specify_types
-            as ExtendedImageProvider<dynamic>;
+    final ExtendedImageProvider<dynamic> extendedImageProvider = widget.extendedImageState.imageWidget.image
+        // ignore: always_specify_types
+        as ExtendedImageProvider<dynamic>;
     return extendedImageProvider.rawImageData;
   }
 
@@ -554,8 +528,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
     }
 
     final double begin = _editActionDetails!.rotateRadians;
-    final double end =
-        begin + _editActionDetails!.reverseRotateRadians(rotateRadians);
+    final double end = begin + _editActionDetails!.reverseRotateRadians(rotateRadians);
 
     if (rotateCropRect && (degree % 360).abs() == 90) {
       _rotateCropRect = true;
@@ -708,10 +681,8 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
 
   int _currentIndex = -1;
   void _saveCurrentState() {
-    final Offset? screenCropRectCenter =
-        _editActionDetails?.screenCropRect?.center;
-    final Offset? rawDestinationRectCenter =
-        _editActionDetails?.rawDestinationRect?.center;
+    final Offset? screenCropRectCenter = _editActionDetails?.screenCropRect?.center;
+    final Offset? rawDestinationRectCenter = _editActionDetails?.rawDestinationRect?.center;
     // crop rect auto center isAnimating
     if (!screenCropRectCenter.isSame(rawDestinationRectCenter)) {
       return;
@@ -734,8 +705,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
   }
 
   void _safeUpdate(VoidCallback fn) {
-    final SchedulerPhase schedulerPhase =
-        SchedulerBinding.instance.schedulerPhase;
+    final SchedulerPhase schedulerPhase = SchedulerBinding.instance.schedulerPhase;
     if (schedulerPhase == SchedulerPhase.persistentCallbacks) {
       SchedulerBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -775,17 +745,13 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
     _editActionDetails?.cropRect = null;
     // re-init crop rect
     Rect layoutRect = Offset.zero & _editActionDetails!.layoutRect!.size;
-    final ui.Rect sreenImageRect =
-        _editActionDetails!.getImagePath().getBounds();
+    final ui.Rect sreenImageRect = _editActionDetails!.getImagePath().getBounds();
 
     layoutRect = _getNewCropRect(
       layoutRect,
       context,
       autoScale: false,
-      initCropRectType:
-          _editActionDetails!.layoutRect!.containsRect(sreenImageRect)
-              ? InitCropRectType.imageRect
-              : InitCropRectType.layoutRect,
+      initCropRectType: _editActionDetails!.layoutRect!.containsRect(sreenImageRect) ? InitCropRectType.imageRect : InitCropRectType.layoutRect,
     );
 
     final double scaleDelta = _editActionDetails!.scaleToFitCropRect();
@@ -822,8 +788,6 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor>
   }
 }
 
-
-
 class CircleEditorCropLayerPainter extends EditorCropLayerPainter {
   const CircleEditorCropLayerPainter();
 
@@ -834,8 +798,7 @@ class CircleEditorCropLayerPainter extends EditorCropLayerPainter {
   // }
 
   @override
-  void paintMask(
-      Canvas canvas, Rect rect, ExtendedImageCropLayerPainter painter) {
+  void paintMask(Canvas canvas, Rect rect, ExtendedImageCropLayerPainter painter) {
     final Rect cropRect = painter.cropRect;
     final Color maskColor = painter.maskColor;
     canvas.saveLayer(rect, Paint());
@@ -844,14 +807,12 @@ class CircleEditorCropLayerPainter extends EditorCropLayerPainter {
         Paint()
           ..style = PaintingStyle.fill
           ..color = maskColor);
-    canvas.drawCircle(cropRect.center, cropRect.width / 2.0,
-        Paint()..blendMode = BlendMode.clear);
+    canvas.drawCircle(cropRect.center, cropRect.width / 2.0, Paint()..blendMode = BlendMode.clear);
     canvas.restore();
   }
 
   @override
-  void paintLines(
-      Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+  void paintLines(Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
     final Rect cropRect = painter.cropRect;
     if (painter.pointerDown) {
       canvas.save();
@@ -861,7 +822,6 @@ class CircleEditorCropLayerPainter extends EditorCropLayerPainter {
     }
   }
 }
-
 
 class TriangleCropLayerPainter extends EditorCropLayerPainter {
   const TriangleCropLayerPainter();
@@ -873,8 +833,7 @@ class TriangleCropLayerPainter extends EditorCropLayerPainter {
   // }
 
   @override
-  void paintMask(
-      Canvas canvas, Rect rect, ExtendedImageCropLayerPainter painter) {
+  void paintMask(Canvas canvas, Rect rect, ExtendedImageCropLayerPainter painter) {
     final Rect cropRect = painter.cropRect;
     final Color maskColor = painter.maskColor;
 
@@ -891,8 +850,8 @@ class TriangleCropLayerPainter extends EditorCropLayerPainter {
     // Define the triangle path
     final Path trianglePath = Path()
       ..moveTo(cropRect.center.dx, cropRect.top) // top-center
-      ..lineTo(cropRect.left, cropRect.bottom)   // bottom-left
-      ..lineTo(cropRect.right, cropRect.bottom)  // bottom-right
+      ..lineTo(cropRect.left, cropRect.bottom) // bottom-left
+      ..lineTo(cropRect.right, cropRect.bottom) // bottom-right
       ..close();
 
     // Clear the triangular area from the mask
@@ -905,8 +864,7 @@ class TriangleCropLayerPainter extends EditorCropLayerPainter {
   }
 
   @override
-  void paintLines(
-      Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+  void paintLines(Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
     final Rect cropRect = painter.cropRect;
 
     if (painter.pointerDown) {
@@ -914,11 +872,67 @@ class TriangleCropLayerPainter extends EditorCropLayerPainter {
       // Clip the lines to be inside the triangle only
       final Path trianglePath = Path()
         ..moveTo(cropRect.center.dx, cropRect.top) // top-center
-        ..lineTo(cropRect.left, cropRect.bottom)   // bottom-left
-        ..lineTo(cropRect.right, cropRect.bottom)  // bottom-right
+        ..lineTo(cropRect.left, cropRect.bottom) // bottom-left
+        ..lineTo(cropRect.right, cropRect.bottom) // bottom-right
         ..close();
 
       canvas.clipPath(trianglePath);
+      super.paintLines(canvas, size, painter);
+      canvas.restore();
+    }
+  }
+}
+
+
+class OvalCropLayerPainter extends EditorCropLayerPainter {
+  const OvalCropLayerPainter();
+
+  // Optional: Comment out if you don’t want corners
+  // @override
+  // void paintCorners(
+  //     Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+  //   // Do nothing to omit corner markers
+  // }
+
+  @override
+  void paintMask(Canvas canvas, Rect rect, ExtendedImageCropLayerPainter painter) {
+    final Rect cropRect = painter.cropRect;
+    final Color maskColor = painter.maskColor;
+
+    canvas.saveLayer(rect, Paint());
+
+    // Draw a filled rectangle as the mask
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..style = PaintingStyle.fill
+        ..color = maskColor,
+    );
+
+    // Define the oval path
+    final Path ovalPath = Path()
+      ..addOval(cropRect);
+
+    // Clear the oval area from the mask
+    canvas.drawPath(
+      ovalPath,
+      Paint()..blendMode = BlendMode.clear,
+    );
+
+    canvas.restore();
+  }
+
+  @override
+  void paintLines(Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
+    final Rect cropRect = painter.cropRect;
+
+    if (painter.pointerDown) {
+      canvas.save();
+
+      // Clip the lines to be inside the oval only
+      final Path ovalPath = Path()..addOval(cropRect);
+
+      canvas.clipPath(ovalPath);
       super.paintLines(canvas, size, painter);
       canvas.restore();
     }

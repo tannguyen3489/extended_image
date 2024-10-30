@@ -13,6 +13,8 @@ import 'package:image/image.dart';
 import 'package:image_editor/image_editor.dart';
 import 'package:image/image.dart' as img;
 import 'dart:math';
+import 'dart:math' as math;
+
 import '../../pages/complex/image_editor_demo.dart';
 
 // final Future<LoadBalancer> loadBalancer =
@@ -145,7 +147,7 @@ Future<EditImageInfo> cropImageDataWithDartLibrary(
 
           image = copyCropCircle(image, radius: size ~/ 2, centerX: cropRect.left.toInt() + cropRect.width.toInt() ~/ 2, centerY: cropRect.top.toInt() + cropRect.height.toInt() ~/ 2);
         } else if (editorCropLayerPainter is TriangleCropLayerPainter) {
-          int size = min(cropRect.width.toInt(), cropRect.height.toInt());
+          // int size = min(cropRect.width.toInt(), cropRect.height.toInt());
           // image = copyCrop(
           //   image,
           //   x: cropRect.left.toInt(),
@@ -157,7 +159,28 @@ Future<EditImageInfo> cropImageDataWithDartLibrary(
           // convert current image to webp image
 
 
-          image = cropByTriangle(image, sideLength: size, centerX: cropRect.left.toInt() + size ~/ 2, centerY: cropRect.top.toInt() + size ~/ 2);
+          image = copyCropByTriangle(image, trianglePoints: [
+            math.Point<int>(cropRect.left.toInt(), cropRect.top.toInt() + cropRect.height.toInt()),
+            math.Point<int>(cropRect.left.toInt() + cropRect.width.toInt(), cropRect.top.toInt() + cropRect.height.toInt()),
+            math.Point<int>(cropRect.left.toInt() + cropRect.width.toInt() ~/ 2, cropRect.top.toInt()),
+          ]);
+        } else if (editorCropLayerPainter is OvalCropLayerPainter) {
+          // image = copyCrop(
+          //   image,
+          //   x: cropRect.left.toInt(),
+          //   y: cropRect.top.toInt(),
+          //   width: cropRect.width.toInt(),
+          //   height: cropRect.height.toInt(),
+          // );
+
+
+
+          image = copyCropByOval(image,
+              radiusX: cropRect.width.toInt() ~/ 2,
+              radiusY: cropRect.height.toInt() ~/ 2,
+              centerX: cropRect.left.toInt() + cropRect.width.toInt() ~/ 2,
+              centerY: cropRect.top.toInt() + cropRect.height.toInt() ~/ 2);
+
         } else {
           image = copyCrop(
             image,
@@ -406,51 +429,131 @@ img.Image cropCircle(img.Image srcImage, Rect cropRect) {
 }
 
 
-Image cropByTriangle(Image src, {int? sideLength, int? centerX, int? centerY, bool antialias = true}) {
-  // Set center and side length (triangle height)
+// Image cropByTriangle(Image src, {int? sideLength, int? centerX, int? centerY, bool antialias = true}) {
+//   // Set center and side length (triangle height)
+//   centerX ??= src.width ~/ 2;
+//   centerY ??= src.height ~/ 2;
+//   sideLength ??= min(src.width, src.height) ~/ 2;
+//
+//   // Triangle vertices based on center and side length
+//   final top = Point(centerX, centerY - sideLength ~/ 2);
+//   final left = Point(centerX - sideLength ~/ 2, centerY + sideLength ~/ 2);
+//   final right = Point(centerX + sideLength ~/ 2, centerY + sideLength ~/ 2);
+//
+//   // Crop area bounding box
+//   final tlx = min(left.x, top.x);
+//   final tly = min(left.y, top.y);
+//   final wh = sideLength;
+//
+//   // Convert palette if needed
+//   if (src.hasPalette) {
+//     src = src.convert(numChannels: 4);
+//   }
+//
+//   // Initialize the first frame for multi-frame support
+//   Image? firstFrame;
+//   final numFrames = src.numFrames;
+//   for (var i = 0; i < numFrames; ++i) {
+//     final frame = src.frames[i];
+//     final dst = firstFrame?.addFrame() ?? Image.fromResized(frame, width: wh, height: wh, noAnimation: true);
+//     firstFrame ??= dst;
+//
+//     final bg = frame.backgroundColor ?? src.backgroundColor;
+//     if (bg != null) {
+//       dst.clear(bg);
+//     }
+//
+//     for (var yi = 0; yi < wh; ++yi) {
+//       for (var xi = 0; xi < wh; ++xi) {
+//         // Map dst pixel to src coordinates
+//         final sx = tlx + xi;
+//         final sy = tly + yi;
+//
+//         // Check if pixel is within the triangle using barycentric coordinates
+//         if (isPointInTriangle(Point(sx, sy), top, left, right)) {
+//           dst.setPixel(xi, yi, frame.getPixel(sx.toInt(), sy.toInt()));
+//         } else {
+//           dst.setPixel(xi, yi, dst.getColor(0, 0, 0, 0));  // Transparent
+//         }
+//       }
+//     }
+//   }
+//
+//   return firstFrame!;
+// }
+//
+// // Function to check if a point is within a triangle using barycentric coordinates
+// bool isPointInTriangle(Point p, Point a, Point b, Point c) {
+//   final denominator = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+//   final w1 = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) / denominator;
+//   final w2 = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) / denominator;
+//   final w3 = 1 - w1 - w2;
+//   return w1 >= 0 && w2 >= 0 && w3 >= 0;
+// }
+
+
+// crop by oval
+
+Image copyCropByOval(Image src,
+    {int? radiusX,
+      int? radiusY,
+      int? centerX,
+      int? centerY,
+      bool antialias = true}) {
   centerX ??= src.width ~/ 2;
   centerY ??= src.height ~/ 2;
-  sideLength ??= min(src.width, src.height) ~/ 2;
+  radiusX ??= src.width ~/ 2;
+  radiusY ??= src.height ~/ 2;
 
-  // Triangle vertices based on center and side length
-  final top = Point(centerX, centerY - sideLength ~/ 2);
-  final left = Point(centerX - sideLength ~/ 2, centerY + sideLength ~/ 2);
-  final right = Point(centerX + sideLength ~/ 2, centerY + sideLength ~/ 2);
+  // Ensure center points and radii are within bounds
+  centerX = centerX.clamp(0, src.width - 1);
+  centerY = centerY.clamp(0, src.height - 1);
+  radiusX = radiusX.clamp(1, src.width);
+  radiusY = radiusY.clamp(1, src.height);
 
-  // Crop area bounding box
-  final tlx = min(left.x, top.x);
-  final tly = min(left.y, top.y);
-  final wh = sideLength;
+  final tlx = centerX - radiusX; // top-left x
+  final tly = centerY - radiusY; // top-left y
 
-  // Convert palette if needed
+  final whX = radiusX * 2;
+  final whY = radiusY * 2;
+
+  // Square values of radii for ellipse equation
+  final radiusXSqr = radiusX * radiusX;
+  final radiusYSqr = radiusY * radiusY;
+
+  // Convert to 4 channels if the source has a palette
   if (src.hasPalette) {
     src = src.convert(numChannels: 4);
   }
 
-  // Initialize the first frame for multi-frame support
   Image? firstFrame;
   final numFrames = src.numFrames;
   for (var i = 0; i < numFrames; ++i) {
     final frame = src.frames[i];
-    final dst = firstFrame?.addFrame() ?? Image.fromResized(frame, width: wh, height: wh, noAnimation: true);
+    final dst = firstFrame?.addFrame() ??
+        Image.fromResized(frame, width: whX, height: whY, noAnimation: true);
     firstFrame ??= dst;
 
+    // Set background color
     final bg = frame.backgroundColor ?? src.backgroundColor;
     if (bg != null) {
       dst.clear(bg);
     }
 
-    for (var yi = 0; yi < wh; ++yi) {
-      for (var xi = 0; xi < wh; ++xi) {
-        // Map dst pixel to src coordinates
-        final sx = tlx + xi;
-        final sy = tly + yi;
+    for (var yi = 0, sy = tly; yi < whY; ++yi, ++sy) {
+      for (var xi = 0, sx = tlx; xi < whX; ++xi, ++sx) {
+        final dx = xi - radiusX;
+        final dy = yi - radiusY;
 
-        // Check if pixel is within the triangle using barycentric coordinates
-        if (isPointInTriangle(Point(sx, sy), top, left, right)) {
-          dst.setPixel(xi, yi, frame.getPixel(sx.toInt(), sy.toInt()));
-        } else {
-          dst.setPixel(xi, yi, dst.getColor(0, 0, 0, 0));  // Transparent
+        // Ellipse equation: (x^2 / radiusX^2) + (y^2 / radiusY^2) <= 1
+        final insideOval = (dx * dx) / radiusXSqr + (dy * dy) / radiusYSqr <= 1;
+        final pixel = frame.getPixel(sx, sy);
+
+        if (insideOval) {
+          dst.setPixel(xi, yi, pixel);
+        } else if (antialias) {
+          final alpha = ovalTest(pixel, dx, dy, radiusXSqr, radiusYSqr);
+          dst.getPixel(xi, yi).setRgba(pixel.r, pixel.g, pixel.b, pixel.a * alpha);
         }
       }
     }
@@ -459,11 +562,112 @@ Image cropByTriangle(Image src, {int? sideLength, int? centerX, int? centerY, bo
   return firstFrame!;
 }
 
-// Function to check if a point is within a triangle using barycentric coordinates
-bool isPointInTriangle(Point p, Point a, Point b, Point c) {
-  final denominator = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
-  final w1 = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) / denominator;
-  final w2 = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) / denominator;
-  final w3 = 1 - w1 - w2;
-  return w1 >= 0 && w2 >= 0 && w3 >= 0;
+/// Determines alpha for an antialiased oval edge.
+/// (x^2 / radiusX^2) + (y^2 / radiusY^2) should approximate 1 for edge.
+double ovalTest(Pixel pixel, int dx, int dy, int radiusXSqr, int radiusYSqr) {
+  final ellipseDist = (dx * dx) / radiusXSqr + (dy * dy) / radiusYSqr;
+  return ellipseDist > 1 ? 0 : max(0, 1 - ellipseDist);
+}
+
+
+
+Image copyCropByTriangle(
+    Image src, {
+      required List<math.Point<int>> trianglePoints, // List of 3 vertices
+      bool antialias = true,
+    }) {
+  if (trianglePoints.length != 3) {
+    throw ArgumentError("Triangle must have exactly 3 points");
+  }
+
+  // Calculate bounding box for the triangle
+  final minX = trianglePoints.map((p) => p.x).reduce(min);
+  final minY = trianglePoints.map((p) => p.y).reduce(min);
+  final maxX = trianglePoints.map((p) => p.x).reduce(max);
+  final maxY = trianglePoints.map((p) => p.y).reduce(max);
+
+  // Ensure bounds are within image
+  final tlx = minX.clamp(0, src.width - 1);
+  final tly = minY.clamp(0, src.height - 1);
+  final brx = maxX.clamp(0, src.width - 1);
+  final bry = maxY.clamp(0, src.height - 1);
+
+  final width = brx - tlx + 1;
+  final height = bry - tly + 1;
+
+  // Convert to 4 channels if the source has a palette
+  if (src.hasPalette) {
+    src = src.convert(numChannels: 4);
+  }
+
+  Image? firstFrame;
+  final numFrames = src.numFrames;
+  for (var i = 0; i < numFrames; ++i) {
+    final frame = src.frames[i];
+    final dst = firstFrame?.addFrame() ??
+        Image.fromResized(frame, width: width, height: height, noAnimation: true);
+    firstFrame ??= dst;
+
+    // Set background color
+    final bg = frame.backgroundColor ?? src.backgroundColor;
+    if (bg != null) {
+      dst.clear(bg);
+    }
+
+    for (var yi = 0, sy = tly; yi < height; ++yi, ++sy) {
+      for (var xi = 0, sx = tlx; xi < width; ++xi, ++sx) {
+        final pixel = frame.getPixel(sx, sy);
+        final point = math.Point<int>(xi + tlx, yi + tly);
+
+        final insideTriangle = isPointInTriangle(
+          point,
+          trianglePoints[0],
+          trianglePoints[1],
+          trianglePoints[2],
+        );
+
+        if (insideTriangle) {
+          dst.setPixel(xi, yi, pixel);
+        } else if (antialias) {
+          final alpha = triangleEdgeTest(point, trianglePoints);
+          dst.getPixel(xi, yi).setRgba(pixel.r, pixel.g, pixel.b, pixel.a * alpha);
+        }
+      }
+    }
+  }
+
+  return firstFrame!;
+}
+
+/// Point-in-triangle test using barycentric coordinates
+bool isPointInTriangle(math.Point<int> p, math.Point<int> p0, math.Point<int> p1, math.Point<int> p2) {
+  final dX = p.x - p2.x;
+  final dY = p.y - p2.y;
+  final dX21 = p2.x - p1.x;
+  final dY12 = p1.y - p2.y;
+  final D = dY12 * (p0.x - p2.x) + dX21 * (p0.y - p2.y);
+  final s = dY12 * dX + dX21 * dY;
+  final t = (p2.y - p0.y) * dX + (p0.x - p2.x) * dY;
+
+  if (D < 0) return s <= 0 && t <= 0 && s + t >= D;
+  return s >= 0 && t >= 0 && s + t <= D;
+}
+
+/// Calculate alpha for antialiasing near triangle edges.
+double triangleEdgeTest(math.Point<int> p, List<math.Point<int>> trianglePoints) {
+  final dist1 = pointToLineDistance(p, trianglePoints[0], trianglePoints[1]);
+  final dist2 = pointToLineDistance(p, trianglePoints[1], trianglePoints[2]);
+  final dist3 = pointToLineDistance(p, trianglePoints[2], trianglePoints[0]);
+  final minDist = min(dist1, min(dist2, dist3));
+
+  return minDist > 1 ? 0 : max(0, 1 - minDist);
+}
+
+/// Distance from a point to a line segment.
+double pointToLineDistance(math.Point<int> p, math.Point<int> v, math.Point<int> w) {
+  final l2 = pow(v.x - w.x, 2) + pow(v.y - w.y, 2);
+  if (l2 == 0) return sqrt(pow(p.x - v.x, 2) + pow(p.y - v.y, 2));
+  var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+  t = max(0, min(1, t));
+  return sqrt(pow(p.x - (v.x + t * (w.x - v.x)), 2) + pow(p.y - (v.y + t * (w.y - v.y)), 2));
 }

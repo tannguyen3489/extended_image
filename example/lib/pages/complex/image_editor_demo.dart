@@ -78,8 +78,8 @@ class _ImageEditorDemoState extends State<ImageEditorDemo> {
       );
     } else {
       imageProvider = const ExtendedAssetImageProvider(
-        // Assets.assets_harley_quinn_webp,
-        'assets/tantest.jpg',
+        Assets.assets_harley_quinn_webp,
+        // 'assets/tantest.jpg',
         // 'assets/tantestfixed.jpg',
         // 'assets/tantest_fixed.webp',
         cacheRawData: true,
