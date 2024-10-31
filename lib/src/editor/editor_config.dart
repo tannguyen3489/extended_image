@@ -33,6 +33,7 @@ class EditorConfig {
     this.initCropRectType = InitCropRectType.imageRect,
     this.cropLayerPainter = const EditorCropLayerPainter(),
     this.speed = 1.0,
+    this.isDisableChangeShape = false,
     this.hitTestBehavior = HitTestBehavior.deferToChild,
     this.editActionDetailsIsChanged,
     this.reverseMousePointerScrollDirection = false,
@@ -54,6 +55,8 @@ class EditorConfig {
   /// Maximum scale factor for zooming the image during editing.
   /// Determines how far the user can zoom in on the image.
   final double maxScale;
+
+  final bool isDisableChangeShape;
 
   /// Padding between the crop rect and the layout or image boundaries.
   /// Helps to provide spacing around the crop rect within the editor.

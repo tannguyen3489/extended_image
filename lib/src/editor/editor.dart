@@ -224,7 +224,9 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor> with SingleTic
     return Column(
       children: [
         Expanded(child: result), // bottom menu full width with center icon buttons
-        Container(
+
+
+        if (_editorConfig!.isDisableChangeShape == false) Container(
           color: ui.Color.fromARGB(255, 255, 255, 255),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
