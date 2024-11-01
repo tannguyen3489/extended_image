@@ -285,6 +285,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor> with SingleTic
                 ),
                 onPressed: () {
                   setState(() {
+                    _editorConfig!.controller?.updateCropAspectRatio(2/3);
                     _editorConfig!.controller?.updateCropAspectRatio(null);
                     // _editorConfig!.cropLayerPainter = const EditorCropLayerPainter();
 
