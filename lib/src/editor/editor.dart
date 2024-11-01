@@ -793,6 +793,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor> with SingleTic
 class CircleEditorCropLayerPainter extends EditorCropLayerPainter {
   const CircleEditorCropLayerPainter();
 
+  // No corners to paint
   // @override
   // void paintCorners(
   //     Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
@@ -803,25 +804,30 @@ class CircleEditorCropLayerPainter extends EditorCropLayerPainter {
   void paintMask(Canvas canvas, Rect rect, ExtendedImageCropLayerPainter painter) {
     final Rect cropRect = painter.cropRect;
     final Color maskColor = painter.maskColor;
+
     canvas.saveLayer(rect, Paint());
+
+    // Draw a filled rectangle as the mask
     canvas.drawRect(
-        rect,
-        Paint()
-          ..style = PaintingStyle.fill
-          ..color = maskColor);
-    canvas.drawCircle(cropRect.center, cropRect.width / 2.0, Paint()..blendMode = BlendMode.clear);
+      rect,
+      Paint()
+        ..style = PaintingStyle.fill
+        ..color = maskColor,
+    );
+
+    // Clear the circular area inside the mask
+    canvas.drawCircle(
+      cropRect.center,
+      cropRect.width / 2.0,
+      Paint()..blendMode = BlendMode.clear,
+    );
+
     canvas.restore();
   }
 
   @override
   void paintLines(Canvas canvas, Size size, ExtendedImageCropLayerPainter painter) {
-    final Rect cropRect = painter.cropRect;
-    if (painter.pointerDown) {
-      canvas.save();
-      canvas.clipPath(Path()..addOval(cropRect));
-      super.paintLines(canvas, size, painter);
-      canvas.restore();
-    }
+    // No action here to skip drawing any outline or border around the circle
   }
 }
 
