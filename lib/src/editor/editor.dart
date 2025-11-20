@@ -664,6 +664,21 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor> with SingleTic
     }
   }
 
+  void setCropRect(EditActionDetails? editActionDetails) {
+    if (_animationController.isAnimating) {
+      return;
+    }
+    setState(() {
+      // _currentIndex = _currentIndex - 1;
+      _editActionDetails = editActionDetails;
+      // if (_editActionDetails!.config != null) {
+      //   _editorConfig = _editActionDetails!.config;
+      // }
+      _editorConfig!.controller?._notifyListeners();
+      _editorConfig!.editActionDetailsIsChanged?.call(_editActionDetails);
+    });
+  }
+
   @override
   bool get canRedo {
     if (_editActionDetails == null) {
